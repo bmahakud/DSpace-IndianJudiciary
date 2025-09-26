@@ -90,42 +90,84 @@ mvn -version
 sudo apt install -y postgresql postgresql-contrib
 ```
 
-### 2. Create Database & User
+Perfect! Since your `dspace_db.dump` file is already in the repo, we can write clear documentation so anyone can restore it and inspect the database tables. Here's a ready-to-use snippet you can put in your README or separate docs:
+
+---
+
+## Restore DSpace Database from Dump
+
+This guide explains how to restore the `dspace_db.dump` file included in this repository and view the tables.
+
+### 1. Prerequisites
+
+* PostgreSQL installed on your system.
+* User `dspace` and database `dspace` created. If not, run:
 
 ```bash
 sudo -i -u postgres psql
 ```
 
-Inside **psql**:
+Inside `psql`:
 
 ```sql
 CREATE DATABASE dspace;
 CREATE USER dspace WITH PASSWORD 'dspace';
 ALTER DATABASE dspace OWNER TO dspace;
 GRANT ALL PRIVILEGES ON DATABASE dspace TO dspace;
-
-\c dspace
-CREATE EXTENSION pgcrypto;
 \q
 ```
 
-### 3. Restore Database from Dump
+---
 
-If you already have `dspace_db.dump`, restore it:
+### 2. Restore the Database
+
+Navigate to the folder containing the dump:
 
 ```bash
-pg_restore -U dspace -d dspace /path/to/dspace_db.dump
+cd ~/DiracAI/Dspace/DSpace-IndianJudiciary
 ```
 
-💡 Replace `/path/to/dspace_db.dump` with the actual file path.
-
-If dump was created with `pg_dump`, use:
+#### Option 1: Using `pg_restore` (if dump is custom format)
 
 ```bash
-psql -U dspace -d dspace -f /path/to/dspace_db.dump
+pg_restore -U dspace -d dspace dspace_db.dump
+```
+
+#### Option 2: Using `psql` (if dump is SQL format)
+
+```bash
+psql -U dspace -d dspace -f dspace_db.dump
+```
+
+> Enter the password `dspace` when prompted.
+
+---
+
+### 3. Verify the Tables
+
+Connect to the restored database:
+
+```bash
+sudo -i -u postgres psql -d dspace
+```
+
+List all tables:
+
+```sql
+\dt
+```
+
+You should see a list of DSpace tables like `item`, `bitstream`, `collection`, etc.
+
+Exit `psql`:
+
+```sql
+\q
 ```
 
 ---
+
+✅ **Now the database is ready for use** with the DSpace backend.
 
 ## ⚙️ Install Servers (Tomcat + Solr)
 
