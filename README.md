@@ -1,17 +1,24 @@
- 🚀 DSpace Installation Guide (Ubuntu 22.04 LTS)
 
-This guide provides step-by-step instructions to install **DSpace** on Ubuntu 22.04 LTS with the required dependencies.
+
+* Directory structure
+* Prerequisites
+* Database setup (with **dump restore**, migrations, privileges)
+* Backend + frontend setup
+* Tomcat + Solr installation
+* Indexing and registry loading
+
+Here’s the **full documentation** you can use:
 
 ---
 
-## 📂 Directory Hierarchy
+ 📘 DSpace Installation & Setup Guide
 
-We will create a structured directory layout for the installation:
+## 📂 Directory Layout
 
 ```bash
-mkdir dspace
-cd dspace
-mkdir root     # Compiled files will go here
+mkdir ~/dspace
+cd ~/dspace
+mkdir root     # Compiled DSpace files will go here
 mkdir servers  # Tomcat and Solr installation
 mkdir source   # DSpace frontend and backend source code
 ```
@@ -40,13 +47,13 @@ sudo apt install -y openjdk-17-jdk
 
 ### 4. Install Maven (3.8.x or above)
 
-Remove old versions if any:
+Remove old versions:
 
 ```bash
 sudo apt remove maven -y
 ```
 
-Download and install latest Maven:
+Download & install latest Maven:
 
 ```bash
 wget https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz
@@ -77,19 +84,19 @@ mvn -version
 
 ## 🗄️ Database Setup (PostgreSQL)
 
-Install PostgreSQL (12, 13 or 14):
+### 1. Install PostgreSQL
 
 ```bash
 sudo apt install -y postgresql postgresql-contrib
 ```
 
-Switch to postgres user:
+### 2. Create Database & User
 
 ```bash
 sudo -i -u postgres psql
 ```
 
-Run the following inside psql:
+Inside **psql**:
 
 ```sql
 CREATE DATABASE dspace;
@@ -99,8 +106,23 @@ GRANT ALL PRIVILEGES ON DATABASE dspace TO dspace;
 
 \c dspace
 CREATE EXTENSION pgcrypto;
-
 \q
+```
+
+### 3. Restore Database from Dump
+
+If you already have `dspace_db.dump`, restore it:
+
+```bash
+pg_restore -U dspace -d dspace /path/to/dspace_db.dump
+```
+
+💡 Replace `/path/to/dspace_db.dump` with the actual file path.
+
+If dump was created with `pg_dump`, use:
+
+```bash
+psql -U dspace -d dspace -f /path/to/dspace_db.dump
 ```
 
 ---
@@ -113,21 +135,21 @@ Go to servers directory:
 cd ~/dspace/servers
 ```
 
-### Download and extract Tomcat 10.x
+### 1. Install Tomcat 10.x
 
 ```bash
 wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.36/bin/apache-tomcat-10.1.36.tar.gz
 tar -xvzf apache-tomcat-10.1.36.tar.gz
 ```
 
-### Download and extract Solr 8.11.x
+### 2. Install Solr 8.11.x
 
 ```bash
 wget https://www.apache.org/dyn/closer.lua/lucene/solr/8.11.4/solr-8.11.4.tgz?action=download -O solr-8.11.4.tgz
 tar -xvzf solr-8.11.4.tgz
 ```
 
-Cleanup:
+### 3. Cleanup
 
 ```bash
 rm -rf solr-8.11.4.tgz apache-tomcat-10.1.36.tar.gz
@@ -143,58 +165,74 @@ Go to source folder:
 cd ~/dspace/source
 ```
 
-Clone repositories:
+### 1. Clone Repositories
 
 ```bash
-git clone https://github.com/DSpace/DSpace.git backend
-git clone https://github.com/DSpace/dspace-angular.git frontend
+git clone https://github.com/bmahakud/DSpace-IndianJudiciary-FrontEnd
+git clone https://github.com/bmahakud/DSpace-IndianJudiciary-BackEnd
 ```
 
-### Configure Backend
+### 2. Configure Backend
 
 ```bash
 cp backend/dspace/config/local.cfg.EXAMPLE backend/dspace/config/local.cfg
 ```
 
-Edit `local.cfg` and set your DSpace directory path (replace with your actual path):
+Edit `local.cfg` and set your DSpace directory:
 
 ```properties
 dspace.dir=/home/<username>/dspace/root
 ```
 
----
+### 3. Compile Backend
 
-## 🎯 Next Steps
+```bash
+cd backend
+mvn clean package
+```
 
-* Compile backend:
+Deploy backend `.war` file to Tomcat `webapps/`.
 
-  ```bash
-  cd backend
-  mvn package -DskipTests
-  ```
+### 4. Build Angular Frontend
 
-* Deploy backend to Tomcat (`webapps` directory).
-
-* Build Angular frontend:
-
-  ```bash
-  cd frontend
-  npm install
-  npm run build
-  ```
-
-* Configure Solr cores using files from DSpace source.
+```bash
+cd frontend
+npm install
+npm run build
+```
 
 ---
 
-## ✅ Summary
+## 🔄 Database Migration & Indexing
 
-You now have:
+Go to DSpace **bin directory** (`~/dspace/root/bin`):
 
-* **Java 17** installed
-* **Maven 3.9.6** configured
-* **PostgreSQL** database ready
-* **Tomcat 10** and **Solr 8.11.4** extracted
-* **DSpace backend + frontend** cloned and configured
+```bash
+# Rebuild Discovery index
+sudo ./dspace index-discovery -b
 
+# Load metadata registry
+sudo ./dspace registry-loader -metadata ../config/registries/dublin-core-types.xml
 
+# Run database migrations
+sudo ./dspace database migrate
+
+# Create administrator account
+sudo ./dspace create-administrator
+```
+
+---
+
+## 🎯 Summary
+
+At this stage, you have:
+
+* ✅ Java 17 installed
+* ✅ Maven 3.9.6 configured
+* ✅ PostgreSQL database ready with dump restored
+* ✅ Tomcat 10 and Solr 8.11.4 installed
+* ✅ DSpace backend + frontend cloned and configured
+* ✅ Database migrations + indexing done
+* ✅ Administrator account created
+
+Now you can start Tomcat and access your DSpace instance
