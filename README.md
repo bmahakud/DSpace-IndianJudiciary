@@ -124,13 +124,28 @@ GRANT ALL PRIVILEGES ON DATABASE dspace TO dspace;
 Navigate to the folder containing the dump:
 
 ```bash
-cd ~/DiracAI/Dspace/DSpace-IndianJudiciary
+cd ~/DiracAI/dspace
 ```
 
 #### Option 1: Using `pg_restore` (if dump is custom format)
 
 ```bash
 pg_restore -U dspace -d dspace dspace_db.dump
+```
+If got **Authentication failed**
+
+```bash
+sudo nano /etc/postgresql/14/main/pg_hba.conf
+```
+Under **# Database administrative login by Unix domain socket**
+edit or add: 
+`
+local   all             all                                     md5
+`
+
+After adding restart the postgresql:
+```bash
+sudo service postgresql restart
 ```
 
 #### Option 2: Using `psql` (if dump is SQL format)
@@ -180,7 +195,7 @@ cd ~/dspace/servers
 ### 1. Install Tomcat 10.x
 
 ```bash
-wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.36/bin/apache-tomcat-10.1.36.tar.gz
+wget https://archive.apache.org/dist/tomcat/tomcat-10/v10.1.36/bin/apache-tomcat-10.1.36.tar.gz
 tar -xvzf apache-tomcat-10.1.36.tar.gz
 ```
 
@@ -210,8 +225,8 @@ cd ~/dspace/source
 ### 1. Clone Repositories
 
 ```bash
-git clone https://github.com/bmahakud/DSpace-IndianJudiciary-FrontEnd
-git clone https://github.com/bmahakud/DSpace-IndianJudiciary-BackEnd
+git clone https://github.com/bmahakud/DSpace-IndianJudiciary-FrontEnd frontend
+git clone https://github.com/bmahakud/DSpace-IndianJudiciary-BackEnd backend
 ```
 
 ### 2. Configure Backend
@@ -222,8 +237,14 @@ cp backend/dspace/config/local.cfg.EXAMPLE backend/dspace/config/local.cfg
 
 Edit `local.cfg` and set your DSpace directory:
 
+Get the path of root(go to dspace/root):
+
+```bash
+pwd
+```
+
 ```properties
-dspace.dir=/home/<username>/dspace/root
+dspace.dir= /diracai/dspace/root
 ```
 
 ### 3. Compile Backend
