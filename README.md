@@ -243,6 +243,8 @@ Get the path of root(go to dspace/root):
 pwd
 ```
 
+After getting the root path change the value of dspace.dir to **root** path:
+
 ```properties
 dspace.dir= /diracai/dspace/root
 ```
