@@ -138,10 +138,10 @@ If got **Authentication failed**
 sudo nano /etc/postgresql/14/main/pg_hba.conf
 ```
 Under **# Database administrative login by Unix domain socket**
-edit or add: 
-`
+edit or add:
+```
 local   all             all                                     md5
-`
+```
 
 After adding restart the postgresql:
 ```bash
